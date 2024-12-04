@@ -1,12 +1,18 @@
 import pygame as game
+import os
+import random
 
 
-icon = game.image.load('reef.jpg')
-player = game.image.load('5games/space shooter/images/player.png')
 game.init()
+
 width, height = 640, 310
 
 display = game.display.set_mode((width, height), game.RESIZABLE)
+
+icon = game.image.load('reef.jpg').convert()
+player = game.image.load(os.path.join('5games', 'space shooter', 'images', 'player.png')).convert_alpha()
+star_path = os.path.join('5games', 'space shooter', 'images', 'star.png')
+
 game.display.set_caption("reef and liam's game")
 game.display.set_icon(icon)
 
@@ -23,8 +29,11 @@ while running:
     if running == False:
         break
 
-    display.fill((0, 255, 0))
-    display.blit(surf, (100, 150))
+    for i in range(20):
+        globals()[f'star{i}'] = game.image.load(star_path).convert_alpha()
+        display.fill((0, 255, 0))
+        pos = (random.randint(0, width), random.randint(0, height))
+        display.blit(globals()[f'star{i}'], pos)
     game.display.update()
 
 game.quit()
