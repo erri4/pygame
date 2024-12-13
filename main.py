@@ -10,15 +10,15 @@ display = game.display.set_mode((width, height), game.RESIZABLE) # Creates the g
 game.display.set_caption("reef and liam's game") # Sets the title of the window.
 
 # Game Variables
-speed = 1
+speed = 10
 running = True
 clock = game.time.Clock()
 
 # Creating a Player Surface
 player_surf = game.Surface((100,200)) # We create a surface for the player and fill it with an orange color.
 player_surf.fill("orange")
-player_direction = game.math.Vector2(1,-2)
-player_speed = 20
+player_direction = game.math.Vector2(1,0.3)
+player_speed = 300
 
 #importing an image
 player = game.image.load(join("5games", "space shooter", "images", "player.png")).convert_alpha()  # Loads images for the player 
@@ -32,7 +32,7 @@ laser_rect = laser.get_frect(bottomleft = ( 20 ,height - 20))
 
 while running:
     #event loop
-    clock.tick(10)
+    dt = clock.tick() / 1000
     for event in game.event.get(): #checks for events if user closes this window we running to be false
         if event.type == game.QUIT:
             running = False
@@ -45,7 +45,9 @@ while running:
     display.blit(laser,(laser_rect))
     
     # Player Movement
-    player_rect.center += player_direction * player_speed
+    player_rect.center += player_direction * player_speed * dt
+    if player_rect.right >= width:
+        player_direction = -player_direction
     # player rendering        
     display.blit(player,(player_rect)) # Draws the player image at the updated position.
     game.display.update() # Refreshes the display to show the latest changes.
