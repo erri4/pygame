@@ -17,7 +17,7 @@ clock = game.time.Clock()
 # Creating a Player Surface
 player_surf = game.Surface((100,200)) # We create a surface for the player and fill it with an orange color.
 player_surf.fill("orange")
-player_direction = game.math.Vector2(1,0.3)
+player_direction = game.math.Vector2()
 player_speed = 300
 
 #importing an image
@@ -36,7 +36,17 @@ while running:
     for event in game.event.get(): #checks for events if user closes this window we running to be false
         if event.type == game.QUIT:
             running = False
-    
+        
+    #input    
+    keys = game.key.get_pressed()
+    player_direction.x = int(keys[game.K_RIGHT]) - int(keys[game.K_LEFT])
+    player_direction.y = int(keys[game.K_DOWN]) - int(keys[game.K_UP])
+    player_direction = player_direction.normalize() if player_direction else player_direction  
+    player_rect.center += player_direction * player_speed * dt 
+    recent_keys = game.key.get_just_pressed()
+    a = recent_keys[game.K_SPACE]
+    if a:
+        print("fire laser")
     # draw the game
     display.fill("grey") #We fill the background with grey and draw the stars, meteor, and laser on the display.
     for pos in object_positions:
@@ -44,10 +54,7 @@ while running:
     display.blit(meteor,(meteor_rect))  
     display.blit(laser,(laser_rect))
     
-    # Player Movement
-    player_rect.center += player_direction * player_speed * dt
-    if player_rect.right >= width:
-        player_direction = -player_direction
+     
     # player rendering        
     display.blit(player,(player_rect)) # Draws the player image at the updated position.
     game.display.update() # Refreshes the display to show the latest changes.
