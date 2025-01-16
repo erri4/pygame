@@ -3,7 +3,8 @@ from os.path import join
 import random
 
 
-class Player(game.sprite.Sprite): 
+class Player(game.sprite.Sprite):  
+    
     def __init__(self, groups): 
         super().__init__(groups)
         self.image = game.image.load(join("images", "player.png")).convert_alpha()  
@@ -11,16 +12,16 @@ class Player(game.sprite.Sprite):
         self.player_direction = game.math.Vector2() 
         self.player_speed = 400
         
+        
+        
         #cooldown 
         self.can_shoot = True
         self.laser_shoot_time = 0
-        self.cooldown_duration = 200
+        self.cooldown_duration = 150
         
 
         # mask
         self.mask = game.mask.from_surface(self.image)
-
-
 
     def laser_timer(self):
         if not self.can_shoot:
@@ -29,15 +30,24 @@ class Player(game.sprite.Sprite):
                  self.can_shoot = True
 
     def update(self,dt):
+        global random_number
         keys = game.key.get_pressed() 
         self.player_direction.x = int(keys[game.K_RIGHT]) - int(keys[game.K_LEFT])
-        self.player_direction.y = int(keys[game.K_DOWN]) - int(keys[game.K_UP]) 
+        self.player_direction.y = int(keys[game.K_DOWN]) - int(keys[game.K_UP])  
         self.player_direction = self.player_direction.normalize() if self.player_direction else self.player_direction 
         self.rect.center += self.player_direction * self.player_speed * dt 
 
         recent_keys = game.key.get_just_pressed() 
         if recent_keys[game.K_SPACE] and self.can_shoot:
-            Laser(laser_surf, self.rect.midtop, (all_sprites,laser_sprites))
+            Laser(self.rect.midtop, (all_sprites,laser_sprites))
+            random_number += 1
+            if random_number == 10:
+                for i in range(8):
+                    random_number -= 1
+            if random_number == 1:
+                for i in range(9):
+                    random_number += 1
+    
             self.can_shoot = False
             self.laser_shoot_time = game.time.get_ticks()
             laser_sound.play()
@@ -50,16 +60,16 @@ class Star(game.sprite.Sprite):
         self.rect = self.image.get_frect(center =(random.randint(0,width),random.randint(0, height)))
         
 class Laser(game.sprite.Sprite): 
-    def __init__(self, surf, pos, groups):
+    def __init__(self, pos, groups):
         super().__init__(groups)
-        self.image = surf
+        self.image = game.image.load(join("images", "laser_assets",f"{random_number}.png")).convert_alpha()
         self.rect = self.image.get_frect(midbottom = pos)
-    
+        self.image = game.transform.rotate(self.image, 90)
     def update(self,dt): 
         self.rect.centery -= 400 * dt
         if self.rect.bottom < 0:
             self.kill()
-        self.image = game.transform.rotate(laser_surf, 90)
+        
 
 class Meteor(game.sprite.Sprite): 
     def __init__(self, surf, pos ,groups):
@@ -99,12 +109,12 @@ class MeteorAnimatedExplosion(game.sprite.Sprite):
             self.kill()
 
 def display_score():
-    global bonus_points, b, display_bonus, bonus_start_time, bonus_display_time
+    global bonus_points, b, display_bonus, bonus_start_time, bonus_display_time, text_surf
 
     # setting the score
     current_time = game.time.get_ticks() // 100
     bonus_points = current_time + b 
-    text_surf = score_font.render(str(current_time), False, (240, 240, 240))
+    text_surf = score_font.render(str(bonus_points), False, (240, 240, 240))
     text_rect = text_surf.get_frect(midbottom=(width / 2, height - 50))
     display_surface.blit(text_surf, text_rect)
     game.draw.rect(display_surface, (240, 240, 240), text_rect.inflate(20, 20).move(0, -8), 7, 10)
@@ -128,8 +138,8 @@ def collisions():
     if collision_sprite:
         running = False
 
-    # checking for collision betwwen the laser and the meteor
-    for laser in laser_sprites:
+    # checking for collision betwwen the laser and the meteor 
+    for laser in laser_sprites: 
         collided_sprite = game.sprite.spritecollide(laser, meteor_sprites, True, game.sprite.collide_mask)
         if collided_sprite:
             b += 20
@@ -137,6 +147,9 @@ def collisions():
             laser.kill()
             MeteorAnimatedExplosion(explosion_frames, laser.rect.midtop, all_sprites)
             explosion_sound.play()
+
+
+
 
 # general setup 
 game.init() 
@@ -147,10 +160,10 @@ speed = 10
 running = True
 clock = game.time.Clock()
 
-# game variables
-random_number = random.randint(1,10)
+# game variables        
+random_number = 1
 display_bonus = False
-bonus_points = 0
+bonus_points = 0 
 b = 0
 bonus_display_time = 500  
 bonus_start_time = 0
@@ -158,7 +171,6 @@ bonus_start_time = 0
 # image imports 
 star_surf = game.image.load(join("images", "star.png")).convert_alpha()
 meteor_surf = game.image.load(join("images", "meteor.png")).convert_alpha()
-laser_surf = game.image.load(join("images", "laser_assets",f"{random_number}.png")).convert_alpha()
 score_font = game.font.Font(join('images', 'Oxanium-Bold.ttf'), 40)
 bonus_score_font = game.font.Font(join('images','Oxanium-Bold.ttf'), 25)
 explosion_frames = [game.image.load(join('images','explosion', f'{pictures}.png')).convert_alpha() for pictures in range(21)]
@@ -200,6 +212,18 @@ while running:
     # Updates all sprites in the game
     all_sprites.update(dt)
     collisions()
+
+    # game boundry
+    if player.rect.centerx < 0:  
+        player.rect.centerx = 0
+    elif player.rect.centerx > width:  
+        player.rect.centerx = width
+    if player.rect.centery < 0:  
+        player.rect.centery = 0
+    elif player.rect.centery > height:  
+        player.rect.centery = height
+
+
 
     # draw the game
     display_surface.fill('#000000') 
