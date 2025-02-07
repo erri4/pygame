@@ -1,6 +1,7 @@
 import pygame as game  
 from os.path import join
 import random
+import time
 
 
 class Player(game.sprite.Sprite):  
@@ -108,6 +109,17 @@ class MeteorAnimatedExplosion(game.sprite.Sprite):
         else:
             self.kill()
 
+
+def getscreensize():
+    game.init()
+    screen = game.display.set_mode()
+
+    width, height = screen.get_size()
+
+    game.display.quit()
+    return width-100, height-100
+
+
 def display_score():
     global bonus_points, b, display_bonus, bonus_start_time, bonus_display_time, text_surf
 
@@ -152,8 +164,8 @@ def collisions():
 
 
 # general setup 
-game.init() 
-width, height = 1280, 720 
+game.init()
+width, height = getscreensize()
 display_surface = game.display.set_mode((width, height), game.RESIZABLE) 
 game.display.set_caption("space shooter") 
 speed = 10
@@ -183,7 +195,7 @@ explosion_sound.set_volume(0.1)
 game_music = game.mixer.Sound(join('audio', 'game_music.wav'))
 
 # volume setting
-game_music.set_volume(0.4)
+game_music.set_volume(0) #adjust as much as you want
 game_music.play(loops = -1 )
 
 # sprites
@@ -198,9 +210,9 @@ player = Player(all_sprites)
 # custom event (timer) 
 meteor_event = game.event.custom_type()
 game.time.set_timer(meteor_event, 300)
+time.sleep(5)
 
-
-while running: 
+while running:
     dt = clock.tick() / 1000
     #event loop
     for event in game.event.get(): 
@@ -227,7 +239,7 @@ while running:
 
     # draw the game
     display_surface.fill('#000000') 
-    display_score()     
+    display_score()
     all_sprites.draw(display_surface)
     
 
